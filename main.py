@@ -23,9 +23,15 @@ hide_st_style = """
 st.markdown(hide_st_style, unsafe_allow_html=True)
 
 def main():
-    st.title(':green[ECONODATA-MX]')
+    col_1, col_2 = st.columns(2)
 
-    # Opción del menú
+    with col_1:
+        st.image('EconoData.jpg', width=110)
+    
+    with col_2:
+        st.title(':grey[ECONODATA-MX]')
+
+    # Option Menu
     menu_options = option_menu(
         menu_title='Menú Principal',
         options=["Inicio", "Indicadores", "Banca", "Vivienda", "Referencias"],
@@ -125,7 +131,12 @@ def main():
             df_IE004 = fc.graficar.filtrar_por_fecha(df_IE004, '2000-01-01')
         
             # Crear las pestañas y la división de la página una sola vez
-            tabs = st.tabs([":chart_with_upwards_trend: Inflacion", ":heavy_dollar_sign: Tipo de Cambio", ":classical_building: Tasa de Referencia", ":building_construction: PIB"])
+            tabs = st.tabs([
+                ":chart_with_upwards_trend: Inflacion", 
+                ":heavy_dollar_sign: Tipo de Cambio", 
+                ":classical_building: Tasa de Referencia", 
+                ":building_construction: PIB"
+                            ])
             
             with tabs[0]:  # Pestaña de Inflacion
 
@@ -134,11 +145,18 @@ def main():
 
                 # Mostrar una gráfica en la primera columna
                 with col1:
-                    st.plotly_chart(fc.graficar.graficar_linea_bis(df_IE004, 'Fecha', 'SP1', 'Evolución Histórica del INPC','Fecha', 'INPC', width=380, height=480))
+                    st.plotly_chart(fc.graficar.graficar_linea_bis(df_IE004,'Fecha','SP1','Evolución Histórica del INPC','Fecha','INPC','#131212', '#989A9C', width=380, height=480 ))
 
                 # Mostrar la gráfica en la segunda columna
                 with col2:
-                    st.plotly_chart(fc.graficar.graficar_linea(df_IE004, 'Fecha','Inflación Anual', 'Inflación Anual Histórica','Inflación Anual (%)', width=380, height=480))
+                    st.plotly_chart(fc.graficar.graficar_linea_bis(df_IE004, 'Fecha','Inflación Anual', 'Inflación Anual Histórica','Fecha','Inflación Anual (%)', '#989A9C', '#0F0F0F', width=380, height=480))
+
+                st.markdown("""
+                            Fuente: INEGI. 
+                            
+                            Índices de precios.
+                            
+                            """)
 
             with tabs[1]:
                     st.title("Evolución del Tipo de Cambio (USD/MXN)")
@@ -156,7 +174,6 @@ def main():
                             # Dividir la página en dos columnas
                                 col1, col2 = st.columns([1, 1])
 
-                            # Mostrar el DataFrame en la primera columna
                             with col1:
                                 fig_ie007 = px.line(df_IE007,
                                                     x=df_IE007.index,
@@ -169,7 +186,7 @@ def main():
                                         width=280,
                                         showlegend = False,
                                         title_font=dict(
-                                            color="#027034",
+                                            color="#131212",
                                             size=14
                                             )
                                         )
@@ -184,14 +201,14 @@ def main():
                                 fig_ie007_bis = px.line(df_IE007,
                                                         x=df_IE007.index,
                                                         y = ["Variacion"],
-                                                        title = "Variación del tipo de cambio (%)"
+                                                        title = "Variación del tipo de cambio (% vs. día anterior)"
                                                         )
                                 fig_ie007_bis.update_layout(
                                         height = 380,
                                         width=280,
                                         showlegend = False,
                                         title_font=dict(
-                                            color="#027034",
+                                            color="#131212",
                                             size=14
                                             )
                                         )
@@ -201,13 +218,18 @@ def main():
 
                                 st.plotly_chart(fig_ie007_bis)
 
+                            st.markdown ("[Fuente: Yahoo Finance](https://finance.yahoo.com/)")
+
             with tabs[2]:
                     st.title("Tasa Referencia: Banco de México")
                     # Cargar datos de tasa objetivo de Banxico
                     df_IE001 = fc.graficar.cargar_datos_gsheets_economics('IE_001', [0, 1])
                     if df_IE001 is not None:
                         df_IE001 = pd.DataFrame(df_IE001)
-                        st.plotly_chart(fc.graficar.graficar_linea(df_IE001, 'Fecha', 'TasaReferencia', 'Tasa de Referencia BANXICO', 'Tasa de Referencia BANXICO (%)', width=680, height=480))  
+                        st.plotly_chart(fc.graficar.graficar_linea_bis(df_IE001, 'Fecha', 'TasaReferencia', 'Tasa de Referencia BANXICO', 'Tasa de Referencia BANXICO (%)', '#989A9C', '#0F0F0F', width=680, height=480))  
+                        st.markdown("""
+                            Fuente: Banco de México.                            
+                            """)
 
             with tabs[3]:
                 st.title("Producto Interno Bruto")
@@ -216,7 +238,9 @@ def main():
                     df_IE006 = pd.DataFrame(df_IE006)
                     fig_df_IE006 = px.bar(df_IE006, x="Periodo", y = "PIB (%)")
                     st.plotly_chart(fig_df_IE006)
-
+                    st.markdown("""
+                            Fuente: INEGI.                            
+                            """)
 
     elif menu_options == "Banca":
         st.title(f"Sección actual: {menu_options}")
@@ -229,19 +253,19 @@ def main():
                 lista_banca = st.selectbox('Tipo de información', ("Activo Total", "Capital Contable", "Resultado Neto"))
 
                 if lista_banca == 'Activo Total':                      
-                    fig_df_c001 = fc.graficar.graficar_linea(df_C001, 'Fecha', 'Activo',  f'Evolución Histórica: <br>{lista_banca}',"Activo Total (mdp)", width=310, height=380)
+                    fig_df_c001 = fc.graficar.graficar_linea_bis(df_C001, 'Fecha', 'Activo',  f'Evolución Histórica: <br>{lista_banca}', 'Fecha', "Activo Total (mdp)", '#131212', '#989A9C', width=310, height=380)
                     df_C001['Dif_Activo'] = (df_C001['Activo']/df_C001['Activo'].shift(12)-1)*100
-                    fig_df_c001_bis = fc.graficar.graficar_linea_bis(df_C001, 'Fecha', 'Dif_Activo', f'Variación anual <br>{lista_banca}',"", "Variación Anual (%)", width=310, height=380)
+                    fig_df_c001_bis = fc.graficar.graficar_linea_bis(df_C001, 'Fecha', 'Dif_Activo', f'Variación anual <br>{lista_banca}', 'Fecha', "Variación Anual (%)", '#989A9C', '#0F0F0F', width=310, height=380)
 
                 elif lista_banca == 'Capital Contable':
-                    fig_df_c001 = fc.graficar.graficar_linea(df_C001, 'Fecha', 'Capital', f'Evolución Histórica <br>{lista_banca}','Capital Contable (mdp)', width=310, height=380)
+                    fig_df_c001 = fc.graficar.graficar_linea_bis(df_C001, 'Fecha', 'Capital', f'Evolución Histórica <br>{lista_banca}', 'Fecha', 'Capital Contable (mdp)', '#131212', '#989A9C', width=310, height=380)
                     df_C001['Dif_Capital'] = (df_C001['Capital']/df_C001['Capital'].shift(12)-1)*100
-                    fig_df_c001_bis = fc.graficar.graficar_linea(df_C001, 'Fecha', 'Dif_Capital', f'Varación anual <br>{lista_banca}','Variación Anual (%)', width=310, height=380)           
+                    fig_df_c001_bis = fc.graficar.graficar_linea_bis(df_C001, 'Fecha', 'Dif_Capital', f'Varación anual <br>{lista_banca}', 'Fecha', 'Variación Anual (%)', '#989A9C', '#0F0F0F', width=310, height=380)           
                         
                 elif lista_banca == 'Resultado Neto':
-                    fig_df_c001 = fc.graficar.graficar_linea(df_C001, 'Fecha', 'Resultado',  f'{"Evolución histórica:"}<br>{lista_banca}','Resultado Neto (mdp)', width=310, height=380)
+                    fig_df_c001 = fc.graficar.graficar_linea_bis(df_C001, 'Fecha', 'Resultado',  f'{"Evolución histórica:"}<br>{lista_banca}', 'Fecha', 'Resultado Neto (mdp)', '#131212', '#989A9C', width=310, height=380)
                     df_C001['Dif_Resultado'] = (df_C001['Resultado']/df_C001['Resultado'].shift(12)-1)*100
-                    fig_df_c001_bis = fc.graficar.graficar_linea(df_C001, 'Fecha', 'Dif_Resultado', f'Variación anual <br>{lista_banca}', "Variación Anual (%)",width=310, height=380)           
+                    fig_df_c001_bis = fc.graficar.graficar_linea_bis(df_C001, 'Fecha', 'Dif_Resultado', f'Variación anual <br>{lista_banca}', 'Fecha', "Variación Anual (%)", '#989A9C', '#0F0F0F', width=310, height=380)           
 
                 submitted = st.form_submit_button("Consultar")
                 
@@ -254,11 +278,14 @@ def main():
                     with col2:
                         st.plotly_chart(fig_df_c001_bis)
         
+                    st.markdown("""
+                            Fuente: Comisión Nacional Bancaria y de Valores.                            
+                            """)
+
         with tabs001[1]:
             
             with st.form("form_captacion"):
                 lista_captacion = st.selectbox('Tipo de información', ('Captación Total','Depósitos de exigencia inmediata',  'Depósitos a plazo', 'Cuenta global de captación sin movimientos'))
-                #st.write(f'Cifras de la banca: {lista_captacion}')
 
                 submit_2 = st.form_submit_button("Consultar")
                 if submit_2:
@@ -268,47 +295,50 @@ def main():
                         col1, col2 = st.columns([1,1], gap='medium')
                             
                         with col1:
-                            st.plotly_chart(fc.graficar.graficar_linea(df_C001, 'Fecha', 'Captacion',  f'Evolución Histórica: <br>{lista_captacion}',"Saldo (mdp)", width=310, height=380))
+                            st.plotly_chart(fc.graficar.graficar_linea_bis(df_C001, 'Fecha', 'Captacion',  f'Evolución Histórica: <br>{lista_captacion}', 'Fecha', "Saldo (mdp)", '#131212', '#989A9C', width=310, height=380))
 
                         with col2:
-                            st.plotly_chart(fc.graficar.graficar_linea(df_C001, 'Fecha', 'Dif_Capt',  f'Variación anual: <br>{lista_captacion}',"Variación Anual (%)", width=310, height=380))
-
+                            st.plotly_chart(fc.graficar.graficar_linea_bis(df_C001, 'Fecha', 'Dif_Capt',  f'Variación anual: <br>{lista_captacion}', 'Fecha', "Variación Anual (%)", '#989A9C', '#0F0F0F', width=310, height=380))
+                           
                     elif lista_captacion == 'Depósitos de exigencia inmediata':
                         df_C001['Dif_Depositos'] = (df_C001['Depositos']/df_C001['Depositos'].shift(12)-1)*100
                         col1, col2 = st.columns([1,1], gap='medium')
                             
                         with col1:
-                            st.plotly_chart(fc.graficar.graficar_linea(df_C001, 'Fecha', 'Depositos',  f'Evolución Histórica: <br>{lista_captacion}', "Saldo (mdp)", width=310, height=380))
+                            st.plotly_chart(fc.graficar.graficar_linea_bis(df_C001, 'Fecha', 'Depositos',  f'Evolución Histórica: <br>{lista_captacion}', 'Fecha',  "Saldo (mdp)", '#131212', '#989A9C', width=310, height=380))
                             
                         with col2:
-                            st.plotly_chart(fc.graficar.graficar_linea(df_C001, 'Fecha', 'Dif_Depositos',  f'Variación anual: <br>{lista_captacion}', "Variación Anual (%)", width=310, height=380))                        
+                            st.plotly_chart(fc.graficar.graficar_linea_bis(df_C001, 'Fecha', 'Dif_Depositos',  f'Variación anual: <br>{lista_captacion}', 'Fecha', "Variación Anual (%)", '#989A9C', '#0F0F0F', width=310, height=380))                        
                     
                     elif lista_captacion == 'Depósitos a plazo':
                         df_C001['Dif_Plazo'] = (df_C001['Plazo']/df_C001['Plazo'].shift(12)-1)*100
                         col1, col2 = st.columns([1,1], gap='medium')
                             
                         with col1:
-                            st.plotly_chart(fc.graficar.graficar_linea(df_C001, 'Fecha', 'Plazo',  f'Evolución Histórica: <br>{lista_captacion}', "Saldo (mdp)", width=310, height=380))
+                            st.plotly_chart(fc.graficar.graficar_linea_bis(df_C001, 'Fecha', 'Plazo',  f'Evolución Histórica: <br>{lista_captacion}', 'Fecha', "Saldo (mdp)", '#131212', '#989A9C', width=310, height=380))
                             
                         with col2:
-                            st.plotly_chart(fc.graficar.graficar_linea(df_C001, 'Fecha', 'Dif_Plazo',  f'Variación anual: <br>{lista_captacion}',"Variación Anual (%)", width=310, height=380))
+                            st.plotly_chart(fc.graficar.graficar_linea_bis(df_C001, 'Fecha', 'Dif_Plazo',  f'Variación anual: <br>{lista_captacion}', 'Fecha', "Variación Anual (%)", '#989A9C', '#0F0F0F', width=310, height=380))
 
                     elif lista_captacion == 'Cuenta global de captación sin movimientos':
                         df_C001['Dif_CGC'] = (df_C001['CGC']/df_C001['CGC'].shift(12)-1)*100
                         col1, col2 = st.columns([1,1], gap='medium')
                             
                         with col1:
-                            st.plotly_chart(fc.graficar.graficar_linea(df_C001, 'Fecha', 'CGC', f'Evolución Histórica: <br>{lista_captacion}', "Saldo (mdp)", width=310, height=380))
+                            st.plotly_chart(fc.graficar.graficar_linea_bis(df_C001, 'Fecha', 'CGC', f'Evolución Histórica: <br>{lista_captacion}', 'Fecha', "Saldo (mdp)", '#131212', '#989A9C', width=310, height=380))
                             
                         with col2:
-                            st.plotly_chart(fc.graficar.graficar_linea(df_C001, 'Fecha', 'Dif_CGC',  f'Variación anual: <br>{lista_captacion}',"Variación Anual (%)", width=310, height=380))
+                            st.plotly_chart(fc.graficar.graficar_linea_bis(df_C001, 'Fecha', 'Dif_CGC',  f'Variación anual: <br>{lista_captacion}', 'Fecha', "Variación Anual (%)", '#989A9C', '#0F0F0F', width=310, height=380))
+
+                    st.markdown("""
+                            Fuente: Comisión Nacional Bancaria y de Valores.                            
+                            """)
 
         with tabs001[2]:
                         
             with st.form("form_cartera"):
 
                 lista_cartera = st.selectbox('Tipo de información', ('Cartera de Crédito Total','Cartera Créditos de Consumo',  'Cartera Créditos Empresariales', 'Cartera de Tarjeta de Crédito', 'Cartera Créditos de Nomina', 'Cartera Créditos Personales',  'Cartera Créditos de Vivienda','Cartera Crédito Automotriz')) 
-                #st.write(f'Cifras de la banca: {lista_cartera}')
                 
                 #Calcular variaciones anuales
                 df_C001['Dif_C_total'] = (df_C001['Total']/df_C001['Total'].shift(12)-1)*100
@@ -327,92 +357,96 @@ def main():
                         col1, col2 = st.columns([1,1], gap='medium')
                             
                         with col1:
-                            st.plotly_chart(fc.graficar.graficar_linea(df_C001, 'Fecha', 'Total',  f'Evolución Histórica: <br>{lista_cartera}','Saldo (mdp)', width=310, height=380))
-                            st.plotly_chart(fc.graficar.graficar_linea(df_C001, 'Fecha', 'Total_IMOR', f'IMOR: {lista_cartera}', "Índice de Morosidad (%)", width=310, height=380))
+                            st.plotly_chart(fc.graficar.graficar_linea_bis(df_C001, 'Fecha', 'Total',  f'Evolución Histórica: <br>{lista_cartera}', 'Fecha', 'Saldo (mdp)', '#131212', '#989A9C', width=310, height=380))
+                            st.plotly_chart(fc.graficar.graficar_linea_bis(df_C001, 'Fecha', 'Total_IMOR', f'IMOR: {lista_cartera}', 'Fecha', "Índice de Morosidad (%)", '#989A9C', '#0F0F0F', width=310, height=380))
 
                         with col2:
-                            st.plotly_chart(fc.graficar.graficar_linea(df_C001, 'Fecha', 'Dif_C_total',  f'Variación anual: <br>{lista_cartera}', "Variación Anual (%)", width=310, height=380))                        
-                            st.plotly_chart(fc.graficar.graficar_linea(df_C001, 'Fecha', 'Total_PE', f'Pérdida esperada: <br>{lista_cartera}', "PE (%)",  width=310, height=380))
+                            st.plotly_chart(fc.graficar.graficar_linea_bis(df_C001, 'Fecha', 'Dif_C_total',  f'Variación anual: <br>{lista_cartera}', 'Fecha', "Variación Anual (%)", '#131212', '#989A9C', width=310, height=380))                        
+                            st.plotly_chart(fc.graficar.graficar_linea_bis(df_C001, 'Fecha', 'Total_PE', f'Pérdida esperada: <br>{lista_cartera}', 'Fecha', "PE (%)", '#989A9C', '#0F0F0F',  width=310, height=380))
 
                     elif lista_cartera == 'Cartera Créditos de Consumo':
                         col1, col2 = st.columns([1,1], gap='medium')
                             
                         with col1:
-                            st.plotly_chart(fc.graficar.graficar_linea(df_C001, 'Fecha', 'Consumo',  f'Evolución Histórica: <br>{lista_cartera}',"Saldo (mdp)", width=310, height=380))
-                            st.plotly_chart(fc.graficar.graficar_linea(df_C001, 'Fecha', 'Consumo_IMOR', f'IMOR: {lista_cartera}', "Índice de Morosidad (%)",  width=310, height=380))
+                            st.plotly_chart(fc.graficar.graficar_linea_bis(df_C001, 'Fecha', 'Consumo',  f'Evolución Histórica: <br>{lista_cartera}', 'Fecha', "Saldo (mdp)", '#131212', '#989A9C', width=310, height=380))
+                            st.plotly_chart(fc.graficar.graficar_linea_bis(df_C001, 'Fecha', 'Consumo_IMOR', f'IMOR: {lista_cartera}', 'Fecha', "Índice de Morosidad (%)", '#989A9C', '#0F0F0F', width=310, height=380))
                             
                         with col2:
-                            st.plotly_chart(fc.graficar.graficar_linea(df_C001, 'Fecha', 'Dif_Consumo',  f'Variación anual: <br>{lista_cartera}', "Variación Anual (%)", width=310, height=380))                        
-                            st.plotly_chart(fc.graficar.graficar_linea(df_C001, 'Fecha', 'Consumo_PE', f'Pérdida esperada: <br>{lista_cartera}',"PE (%)", width=310, height=380))
+                            st.plotly_chart(fc.graficar.graficar_linea_bis(df_C001, 'Fecha', 'Dif_Consumo',  f'Variación anual: <br>{lista_cartera}', 'Fecha', "Variación Anual (%)", '#131212', '#989A9C', width=310, height=380))                        
+                            st.plotly_chart(fc.graficar.graficar_linea_bis(df_C001, 'Fecha', 'Consumo_PE', f'Pérdida esperada: <br>{lista_cartera}', 'Fecha', "PE (%)", '#989A9C', '#0F0F0F', width=310, height=380))
 
                     elif lista_cartera == 'Cartera Créditos Empresariales':
                         col1, col2 = st.columns([1,1], gap='medium')
                             
                         with col1:
-                            st.plotly_chart(fc.graficar.graficar_linea(df_C001, 'Fecha', 'Empresas',  f'Evolución Histórica <br>{lista_cartera}',"Saldo (mdp)", width=310, height=380))
-                            st.plotly_chart(fc.graficar.graficar_linea(df_C001, 'Fecha', 'Empresas_IMOR', f'IMOR: {lista_cartera}', "Índice de Morosidad (%)", width=310, height=380))
+                            st.plotly_chart(fc.graficar.graficar_linea_bis(df_C001, 'Fecha', 'Empresas',  f'Evolución Histórica <br>{lista_cartera}', 'Fecha', "Saldo (mdp)", '#131212', '#989A9C', width=310, height=380))
+                            st.plotly_chart(fc.graficar.graficar_linea_bis(df_C001, 'Fecha', 'Empresas_IMOR', f'IMOR: {lista_cartera}', 'Fecha', "Índice de Morosidad (%)", '#989A9C', '#0F0F0F', width=310, height=380))
 
                         with col2:
-                            st.plotly_chart(fc.graficar.graficar_linea(df_C001, 'Fecha', 'Dif_Empresas',  f'Variación anual: <br>{lista_cartera}', "Variación Anual (%)", width=310, height=380))             
-                            st.plotly_chart(fc.graficar.graficar_linea(df_C001, 'Fecha', 'Empresas_PE', f'Pérdidad Esperada: <br>{lista_cartera}', "PE (%)", width=310, height=380))
+                            st.plotly_chart(fc.graficar.graficar_linea_bis(df_C001, 'Fecha', 'Dif_Empresas',  f'Variación anual: <br>{lista_cartera}', 'Fecha', "Variación Anual (%)", '#131212', '#989A9C', width=310, height=380))             
+                            st.plotly_chart(fc.graficar.graficar_linea_bis(df_C001, 'Fecha', 'Empresas_PE', f'Pérdidad Esperada: <br>{lista_cartera}', 'Fecha', "PE (%)", '#989A9C', '#0F0F0F', width=310, height=380))
 
                     elif lista_cartera == 'Cartera de Tarjeta de Crédito':
 
                         col1, col2 = st.columns([1,1], gap='medium')
                             
                         with col1:
-                            st.plotly_chart(fc.graficar.graficar_linea(df_C001, 'Fecha', 'TC',  f'Evolución Histórica: <br>{lista_cartera}', "Saldo (mdp)", width=310, height=380))
-                            st.plotly_chart(fc.graficar.graficar_linea(df_C001, 'Fecha', 'TC_IMOR', f'IMOR: {lista_cartera}', "Índice de Morosidad (%)", width=310, height=380))
+                            st.plotly_chart(fc.graficar.graficar_linea_bis(df_C001, 'Fecha', 'TC',  f'Evolución Histórica: <br>{lista_cartera}', 'Fecha',  "Saldo (mdp)", '#131212', '#989A9C', width=310, height=380))
+                            st.plotly_chart(fc.graficar.graficar_linea_bis(df_C001, 'Fecha', 'TC_IMOR', f'IMOR: {lista_cartera}', 'Fecha', "Índice de Morosidad (%)", '#989A9C', '#0F0F0F', width=310, height=380))
 
                         with col2:
-                            st.plotly_chart(fc.graficar.graficar_linea(df_C001, 'Fecha', 'Dif_TC',  f'Variación anual: <br>{lista_cartera}', "Variación Anual (%)", width=310, height=380))
-                            st.plotly_chart(fc.graficar.graficar_linea(df_C001, 'Fecha', 'TC_PE', f'Pérdida esperada: <br>{lista_cartera}', "PE (%)", width=310, height=380))
+                            st.plotly_chart(fc.graficar.graficar_linea_bis(df_C001, 'Fecha', 'Dif_TC',  f'Variación anual: <br>{lista_cartera}', 'Fecha', "Variación Anual (%)", '#131212', '#989A9C', width=310, height=380))
+                            st.plotly_chart(fc.graficar.graficar_linea_bis(df_C001, 'Fecha', 'TC_PE', f'Pérdida esperada: <br>{lista_cartera}', 'Fecha', "PE (%)", '#989A9C', '#0F0F0F', width=310, height=380))
 
                     elif lista_cartera == 'Cartera Créditos de Nomina':
 
                         col1, col2 = st.columns([1,1], gap='medium')
                             
                         with col1:
-                            st.plotly_chart(fc.graficar.graficar_linea(df_C001, 'Fecha', 'Nomina',  f'Evolución Histórica: <br>{lista_cartera}', "Saldo (mdp)", width=310, height=380))
-                            st.plotly_chart(fc.graficar.graficar_linea(df_C001, 'Fecha', 'Nomina_IMOR', f'IMOR: {lista_cartera}', "Índice de Morosidad (%)", width=310, height=380))
+                            st.plotly_chart(fc.graficar.graficar_linea_bis(df_C001, 'Fecha', 'Nomina',  f'Evolución Histórica: <br>{lista_cartera}', 'Fecha', "Saldo (mdp)", '#131212', '#989A9C', width=310, height=380))
+                            st.plotly_chart(fc.graficar.graficar_linea_bis(df_C001, 'Fecha', 'Nomina_IMOR', f'IMOR: {lista_cartera}', 'Fecha', "Índice de Morosidad (%)", '#989A9C', '#0F0F0F', width=310, height=380))
 
                         with col2:
-                            st.plotly_chart(fc.graficar.graficar_linea(df_C001, 'Fecha', 'Dif_Nomina',  f'Varición anual: <br>{lista_cartera}', "Variación Anual (%)", width=310, height=380))
-                            st.plotly_chart(fc.graficar.graficar_linea(df_C001, 'Fecha', 'Nomina_PE', f'Pérdida esperada: <br>{lista_cartera}', "PE (%)", width=310, height=380))
+                            st.plotly_chart(fc.graficar.graficar_linea_bis(df_C001, 'Fecha', 'Dif_Nomina',  f'Varición anual: <br>{lista_cartera}', 'Fecha', "Variación Anual (%)", '#131212', '#989A9C', width=310, height=380))
+                            st.plotly_chart(fc.graficar.graficar_linea_bis(df_C001, 'Fecha', 'Nomina_PE', f'Pérdida esperada: <br>{lista_cartera}', 'Fecha', "PE (%)", '#989A9C', '#0F0F0F', width=310, height=380))
 
                     elif lista_cartera == 'Cartera Créditos Personales':
 
                         col1, col2 = st.columns([1,1], gap='medium')
                             
                         with col1:
-                            st.plotly_chart(fc.graficar.graficar_linea(df_C001, 'Fecha', 'Personales',  f'Evolución Histórica: <br>{lista_cartera}', "Saldo (mdp)", width=310, height=380))
-                            st.plotly_chart(fc.graficar.graficar_linea(df_C001, 'Fecha', 'Personales_IMOR', f'IMOR: {lista_cartera}', "Índice de Morosidad (%)", width=310, height=380))
+                            st.plotly_chart(fc.graficar.graficar_linea_bis(df_C001, 'Fecha', 'Personales',  f'Evolución Histórica: <br>{lista_cartera}', 'Fecha', "Saldo (mdp)", '#131212', '#989A9C', width=310, height=380))
+                            st.plotly_chart(fc.graficar.graficar_linea_bis(df_C001, 'Fecha', 'Personales_IMOR', f'IMOR: {lista_cartera}', 'Fecha', "Índice de Morosidad (%)", '#989A9C', '#0F0F0F', width=310, height=380))
                         
                         with col2:
-                            st.plotly_chart(fc.graficar.graficar_linea(df_C001, 'Fecha', 'Dif_Personales',  f'Variación anual: <br>{lista_cartera}', "Variación Anual (%)", width=310, height=380))
-                            st.plotly_chart(fc.graficar.graficar_linea(df_C001, 'Fecha', 'Personales_PE', f'Pérdida esperada: <br>{lista_cartera}', "PE (%)", width=310, height=380))
+                            st.plotly_chart(fc.graficar.graficar_linea_bis(df_C001, 'Fecha', 'Dif_Personales',  f'Variación anual: <br>{lista_cartera}', 'Fecha', "Variación Anual (%)", '#131212', '#989A9C', width=310, height=380))
+                            st.plotly_chart(fc.graficar.graficar_linea_bis(df_C001, 'Fecha', 'Personales_PE', f'Pérdida esperada: <br>{lista_cartera}', 'Fecha', "PE (%)", '#989A9C', '#0F0F0F', width=310, height=380))
 
                     elif lista_cartera == 'Cartera Créditos de Vivienda':
 
                         col1, col2 = st.columns([1,1], gap='medium')
                             
                         with col1:
-                            st.plotly_chart(fc.graficar.graficar_linea(df_C001, 'Fecha', 'Vivienda',  f'Evolución Histórica: <br>{lista_cartera}', "Saldo (mdp)", width=310, height=380))
-                            st.plotly_chart(fc.graficar.graficar_linea(df_C001, 'Fecha', 'Vivienda_IMOR', f'IMOR: {lista_cartera}', "Índice de Morosidad (%)", width=310, height=380))
+                            st.plotly_chart(fc.graficar.graficar_linea_bis(df_C001, 'Fecha', 'Vivienda',  f'Evolución Histórica: <br>{lista_cartera}', 'Fecha', "Saldo (mdp)", '#131212', '#989A9C', width=310, height=380))
+                            st.plotly_chart(fc.graficar.graficar_linea_bis(df_C001, 'Fecha', 'Vivienda_IMOR', f'IMOR: {lista_cartera}', "Índice de Morosidad (%)", '#989A9C', '#0F0F0F', width=310, height=380))
                         
                         with col2:
-                            st.plotly_chart(fc.graficar.graficar_linea(df_C001, 'Fecha', 'Dif_Vivienda',  f'Variación anual: <br>{lista_cartera}', "Variación Anual (%)", width=310, height=380)) 
-                            st.plotly_chart(fc.graficar.graficar_linea(df_C001, 'Fecha', 'Vivienda_PE', f'Pérdida esperada: <br>{lista_cartera}', "PE (%)", width=310, height=380))
+                            st.plotly_chart(fc.graficar.graficar_linea_bis(df_C001, 'Fecha', 'Dif_Vivienda',  f'Variación anual: <br>{lista_cartera}', 'Fecha', "Variación Anual (%)", '#131212', '#989A9C', width=310, height=380)) 
+                            st.plotly_chart(fc.graficar.graficar_linea_bis(df_C001, 'Fecha', 'Vivienda_PE', f'Pérdida esperada: <br>{lista_cartera}', 'Fecha', "PE (%)", '#989A9C', '#0F0F0F', width=310, height=380))
                             
                     elif lista_cartera == 'Cartera Crédito Automotriz':
                         col1, col2 = st.columns([1,1], gap='medium')
                             
                         with col1:
-                            st.plotly_chart(fc.graficar.graficar_linea(df_C001, 'Fecha', 'Automotriz',  f'Evolución Histórica: <br>{lista_cartera}', "Saldo (mdp)", width=310, height=380))
-                            st.plotly_chart(fc.graficar.graficar_linea(df_C001, 'Fecha', 'Automotriz_IMOR', f'IMOR: {lista_cartera}', "Índice de Morosidad (%)", width=310, height=380))
+                            st.plotly_chart(fc.graficar.graficar_linea_bis(df_C001, 'Fecha', 'Automotriz',  f'Evolución Histórica: <br>{lista_cartera}', 'Fecha', "Saldo (mdp)", '#131212', '#989A9C', width=310, height=380))
+                            st.plotly_chart(fc.graficar.graficar_linea_bis(df_C001, 'Fecha', 'Automotriz_IMOR', f'IMOR: {lista_cartera}', 'Fecha', "Índice de Morosidad (%)", '#989A9C', '#0F0F0F', width=310, height=380))
                         with col2:
-                            st.plotly_chart(fc.graficar.graficar_linea(df_C001, 'Fecha', 'Dif_Automotriz',  f'Variación anual: <br>{lista_cartera}', "Variación Anual (%)", width=310, height=380)) 
-                            st.plotly_chart(fc.graficar.graficar_linea(df_C001, 'Fecha', 'Automotriz_PE', f'Pérdida esperada: <br>{lista_cartera}',  "PE (%)", width=310, height=380))
+                            st.plotly_chart(fc.graficar.graficar_linea_bis(df_C001, 'Fecha', 'Dif_Automotriz',  f'Variación anual: <br>{lista_cartera}', 'Fecha', "Variación Anual (%)", '#131212', '#989A9C', width=310, height=380)) 
+                            st.plotly_chart(fc.graficar.graficar_linea_bis(df_C001, 'Fecha', 'Automotriz_PE', f'Pérdida esperada: <br>{lista_cartera}', 'Fecha',  "PE (%)", '#989A9C', '#0F0F0F', width=310, height=380))
+
+                    st.markdown("""
+                            Fuente: Comisión Nacional Bancaria y de Valores.                            
+                            """)
 
     elif menu_options == "Vivienda":
         st.title(f"Sección actual: {menu_options}")
@@ -431,9 +465,9 @@ def main():
                 df_nacional = df_IE005[df_IE005['Global']=="Nacional"]
                 st.write("Información del Índice de Precios a la vivienda SHF")
                 
-                fig_df_ie005 = fc.graficar.graficar_linea_bis(df_IE005_bis, 'Trimestre', 'Indice',  f'Evolución del Índice SHF <br>{value}', width=310, height=380)
+                fig_df_ie005 = fc.graficar.graficar_linea_bis(df_IE005_bis, 'Trimestre', 'Indice',  f'Evolución del Índice SHF <br>{value}', 'Periodo', 'Valor índice', '#131212', '#989A9C', width=310, height=380)
         
-                fig_df_ie005_bis = fc.graficar.graficar_linea(df_IE005_bis, 'Trimestre', 'Diferencia',  f'Variación Anual: <br>{value}', "Variación Anual (%)", width=310, height=380)
+                fig_df_ie005_bis = fc.graficar.graficar_linea_bis(df_IE005_bis, 'Trimestre', 'Diferencia',  f'Variación Anual: <br>{value}','Periodo', "Variación Anual (%)", '#989A9C', '#0F0F0F', width=310, height=380)
                 
                 submitted = st.form_submit_button("Consultar")
                 
@@ -447,6 +481,8 @@ def main():
                 # Mostrar la gráfica en la segunda columna
                     with col2:
                         st.plotly_chart(fig_df_ie005)
+
+                    st.text("Fuete: SHF, Índice SHF de Precios a la Vivienda en México")
 
         with tabs002[1]:
             st.write('Tasa de interés créditos a la vivienda')
@@ -484,6 +520,10 @@ def main():
             if y_cols:  # Verifica si se seleccionaron variables para mostrar
                 fig = graficar_lineas(df_IEO03, 'Fecha', y_cols, titles)
                 st.plotly_chart(fig)
+                st.markdown("""
+                Fuente: Banco de México con información proporcionada por los intermediarios e INFOSEL.                            
+                """)
+
             else:
                 st.warning("Por favor, selecciona al menos una variable para mostrar.")
 
@@ -497,7 +537,15 @@ def main():
                         
                         Portal Web del Instituto Nacional de Estadística y Geografía [INEGI](https://www.inegi.org.mx/) 
                         
+                        #### Inflación
+
+                        Como parte del “Ciclo de Actualización de la Información Económica”, el INEGI actualizó el año base del Índice Nacional de Precios al Consumidor (INPC) a la segunda quincena de julio de 2018 (2a. quincena julio 2018=100).
+                        
                         ---
+
+                        #### PIB (Producto Interno Bruto)
+                        El Producto Interno Bruto trimestral ofrece, en el corto plazo, una visión oportuna, completa y coherente de la evolución de las actividades económicas del país, proporcionando información oportuna y actualizada, para apoyar la toma de decisiones.
+
                         """)
             
         with st.expander(":green[Banxico]"):
@@ -506,6 +554,10 @@ def main():
                         
                         Portal Web de Banco de México [BANXICO](https://www.banxico.org.mx/) 
                         
+                        #### Tasa Objetivo de Banco de México
+                        
+                        1/ Meta establecida por el Banco de México para la tasa de interés en operaciones de fondeo interbancario a un día.
+
                         ---
                         """
                         )
@@ -538,10 +590,30 @@ def main():
 
         with st.expander(":green[SHF]"):
             st.markdown("### Notas")
+
+            with open("shf.txt", "r", encoding="utf-8") as file:
+                texto = file.read()
+
             st.markdown("""                    
-                        Portal Web de Sociedad Hipotecaria Federal [SHF](https://www.gob.mx/shf) 
+                        Portal Web de Sociedad Hipotecaria Federal  [SHF](https://www.gob.mx/shf)                      
+                        
                         ---
-                        """)
+
+                        """, unsafe_allow_html=True)
+
+            st.markdown(texto)
+
+        with st.expander(":green[Contacto]"):
+            col1, col2, col3 = st.columns([.2,.5,1])
+
+            with col1:
+
+                st.image("./images/twitter.svg")
+                st.image("./images/google.svg")
+
+            with col2:
+                st.text("@EconoDataMx")
+                st.text("EconoDataMx@gmail.com")
 
 if __name__ == "__main__":
     main()

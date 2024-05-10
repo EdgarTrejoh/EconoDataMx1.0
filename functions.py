@@ -10,13 +10,13 @@ class graficar():
         self.graficar_linea
         self.graficar_linea_bis
     
-    def graficar_linea(df: pd.DataFrame, x_col: str, y_col: str, title: str, y_name_col: str,  width: int = 80, height: int = 80):
+    def graficar_linea(df: pd.DataFrame, x_col: str, y_col: str, title: str, y_name_col: str,  width: int = 80, height: int = 80, title_color: str = '#131212', line_color: str = '#A109A1'):
         fig = go.Figure()
-        fig.add_trace(go.Scatter(x=df[x_col], y=df[y_col], mode='lines', name=y_col))
-        fig.update_layout(title=title, xaxis_title=x_col, yaxis_title=y_name_col, width=width, height=height)
+        fig.add_trace(go.Scatter(x=df[x_col], y=df[y_col], mode='lines', name=y_col, line=dict(color=line_color)))
+        fig.update_layout(title=dict(text=title, font=dict(color=title_color)), xaxis_title=x_col, yaxis_title=y_name_col, width=width, height=height)
         return fig
     
-    def graficar_linea_bis(df: pd.DataFrame, x_col, y_col, title, x_title = None, y_title = None, line_color= "black", title_color="#027034", title_size=18, width=None, height=None):
+    def graficar_linea_bis(df: pd.DataFrame, x_col, y_col, title, x_title = None, y_title = None, line_color= None, title_color=None, title_size=18, width=None, height=None):
         fig = px.line(df, x=x_col, y=y_col)
         
         if x_title:
