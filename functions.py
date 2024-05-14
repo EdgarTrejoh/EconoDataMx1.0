@@ -48,7 +48,7 @@ class graficar():
                 
         return fig
 
-    def cargar_datos_gsheets_economics(worksheet_name: str, columns: list):
+    def cargar_datos_gsheets_economics(worksheet_name: str, columns: list= None):
         conn = st.connection("gsheets", type=GSheetsConnection)
         try:
             df = conn.read(worksheet=worksheet_name, usecols=columns, ttl=2).dropna()
