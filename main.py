@@ -29,7 +29,7 @@ def main():
     col_1, col_2 = st.columns(2)
 
     with col_1:
-        st.image('images\EconoData.jpg', width=110)
+        st.image('EconoData.jpg', width=110)
     
     with col_2:
         st.title(':grey[ECONODATA-MX]')
