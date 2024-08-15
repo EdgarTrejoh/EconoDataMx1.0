@@ -29,7 +29,7 @@ def main():
     col_1, col_2 = st.columns(2)
 
     with col_1:
-        st.image('.\images\EconoData.jpg', width=110)
+        st.image('images\EconoData.jpg', width=110)
     
     with col_2:
         st.title(':grey[ECONODATA-MX]')
@@ -313,7 +313,7 @@ def main():
                 lista_banca = st.selectbox('Tipo de información', ("Activo Total", "Capital Contable", "Resultado Neto"))
 
                 if lista_banca == 'Activo Total':                      
-                    fig_df_IE002 = charts.graficar_linea_bis(df_IE002, 'Fecha', 'Activo-SIS',  f'Evolución Histórica: <br>{lista_banca}', 'Fecha', "Activo Total (mdp)", '#1882eb', '#989A9C', width=310, height=380)
+                    fig_df_IE002 = charts.graficar_linea_bis(df_IE002, 'Fecha', 'Activo-SIS',  f'Evolución Histórica: <br>{lista_banca}', 'Fecha', "Activo Total (mdp)", '#1882ebcd', '#989A9C', width=310, height=380)
                     df_IE002['Dif_Activo'] = (df_IE002['Activo-SIS']/df_IE002['Activo-SIS'].shift(12)-1)*100
                     fig_df_IE002_bis = charts.graficar_linea_bis(df_IE002, 'Fecha', 'Dif_Activo', f'Variación anual <br>{lista_banca}', 'Fecha', "Variación Anual (%)", '#989A9C', '#0F0F0F', width=310, height=380)
 
