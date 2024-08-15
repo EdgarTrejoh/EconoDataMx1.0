@@ -677,13 +677,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-#theme
-#hide_st_style= """
-
-#<style>
-#MainMenu{visibility:hidden;}
-#footer{visibility:hidden;}
-#header{visibility:hidden;}
-#</style>
-#"""
