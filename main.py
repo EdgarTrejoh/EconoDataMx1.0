@@ -147,7 +147,7 @@ def main():
                 
                     if submitted:
 
-                        st.plotly_chart(charts.create_chart(df_IE004,'Fecha', 'Inflación Anual', 'Inflación Anual Histórica - Mx', 'Fecha', 'Inflación Anial (%)', '#989A9C', '#6F95EC', 18, 680, 480))
+                        st.plotly_chart(charts.create_chart(df_IE004,'Fecha', 'Inflación Anual', 'Inflación Anual Histórica - Mx', 'Fecha', 'Inflación Anial (%)', '#0f52EA', '#0f52ea', 18, 680, 480))
 
                         st.markdown("""
                                 Fuente: INEGI. 
@@ -662,18 +662,6 @@ def main():
                         """, unsafe_allow_html=True)
 
             st.markdown(texto)
-
-        with st.expander(":green[Contacto]"):
-            col1, col2, col3 = st.columns([.2,.5,1])
-
-            with col1:
-
-                st.image("./images/twitter.svg")
-                st.image("./images/google.svg")
-
-            with col2:
-                st.text("@EconoDataMx")
-                st.text("EconoDataMx@gmail.com")
 
 if __name__ == "__main__":
     main()

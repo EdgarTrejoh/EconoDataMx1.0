@@ -30,7 +30,7 @@ def create_chart(df: pd.DataFrame, x_col, y_col, title, x_title = None, y_title 
     )
     
     # Cambiar estilo de línea y color
-    fig.update_traces(line=dict(width=3.5, color = "#2A3A4B", dash='dash'))
+    fig.update_traces(line=dict(width=3.5, color = "#2A3A4B", dash='dash'), line_color=line_color)
     #line_color
     if width and height:
         fig.update_layout(width=width, height=height)
