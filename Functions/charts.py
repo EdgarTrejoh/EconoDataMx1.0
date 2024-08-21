@@ -2,7 +2,7 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 
-def create_chart(df: pd.DataFrame, x_col, y_col, title, x_title = None, y_title = None, line_color= None, title_color=None, title_size=18, width=None, height=None):
+def create_chart(df: pd.DataFrame, x_col, y_col, title, x_title = None, y_title = None, line_color= None, title_color=None, title_size=18, width=None, height=None, width_line: float=None):
     fig = px.line(df, x = x_col, y = y_col)
 
     max_value = df[y_col].max()
@@ -10,11 +10,11 @@ def create_chart(df: pd.DataFrame, x_col, y_col, title, x_title = None, y_title 
     max_point = df[df[y_col]== max_value]
     min_point = df[df[y_col]== min_value]
 
-    fig.add_scatter(x=max_point[x_col], y = max_point[y_col], mode = 'markers+text', name="Max",
+    fig.add_scatter(x=max_point[x_col], y = max_point[y_col], mode = 'lines+markers+text', name="Max",
                     text= 'Max', textposition='top right', marker=dict(color='red', size=10))   
 
-    fig.add_scatter(x=min_point[x_col], y=min_point[y_col], mode='markers+text', name="Min",
-                    text='Min', textposition='bottom right', marker=dict(color='blue', size=10))
+    fig.add_scatter(x=min_point[x_col], y=min_point[y_col], mode='lines+markers+text', name="Min",
+                    text='Min', textposition='bottom right', marker=dict(color='black', size=10))
     if x_title:
         fig.update_xaxes(title_text = x_title)
     if y_title:
@@ -30,7 +30,7 @@ def create_chart(df: pd.DataFrame, x_col, y_col, title, x_title = None, y_title 
     )
     
     # Cambiar estilo de línea y color
-    fig.update_traces(line=dict(width=3.5, color = "#2A3A4B", dash='dash'), line_color=line_color)
+    fig.update_traces(line=dict(width=width_line, color = "#2A3A4B", dash='solid'), line_color=line_color)
     #line_color
     if width and height:
         fig.update_layout(width=width, height=height)
@@ -52,8 +52,8 @@ def graficar_linea_bis(df: pd.DataFrame, x_col, y_col, title, x_title = None, y_
             size = title_size
         )
     )
-
-    fig.update_traces(line=dict(color = line_color))
+    #fig.update_traces(line=dict(width=width_line, color = "#2A3A4B", dash='solid'), line_color=line_color)
+    fig.update_traces(line=dict(width=2.8, color = line_color))
 
     if width and height:
         fig.update_layout(width=width, height=height)

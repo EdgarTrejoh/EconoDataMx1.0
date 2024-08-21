@@ -147,7 +147,7 @@ def main():
                 
                     if submitted:
 
-                        st.plotly_chart(charts.create_chart(df_IE004,'Fecha', 'Inflación Anual', 'Inflación Anual Histórica - Mx', 'Fecha', 'Inflación Anial (%)', '#0f52EA', '#0f52ea', 18, 680, 480))
+                        st.plotly_chart(charts.create_chart(df_IE004,'Fecha', 'Inflación Anual', 'Inflación Anual Histórica - Mx', 'Fecha', 'Inflación Anial (%)', '#0f52EA', '#0f52ea', 18, 600, 380, 3))
 
                         st.markdown("""
                                 Fuente: INEGI. 
@@ -283,7 +283,7 @@ def main():
                                 fig_ie003_bis = px.line(df_IE003,
                                                         x=df_IE003.index,
                                                         y = ["Variacion"],
-                                                        title = "Variación del tipo de cambio (% vs. día anterior)"
+                                                        title = "Variación histórica del IPC -Mx (% vs. día anterior)"
                                                         )
                                 fig_ie003_bis.update_layout(
                                     height = 380,
@@ -312,26 +312,36 @@ def main():
             with st.form("form_banca"):
                 lista_banca = st.selectbox('Tipo de información', ("Activo Total", "Capital Contable", "Resultado Neto"))
 
-                if lista_banca == 'Activo Total':                      
-                    fig_df_IE002 = charts.graficar_linea_bis(df_IE002, 'Fecha', 'Activo-SIS',  f'Evolución Histórica: <br>{lista_banca}', 'Fecha', "Activo Total (mdp)", '#1882eb', '#989A9C', width=310, height=380)
-                    df_IE002['Dif_Activo'] = (df_IE002['Activo-SIS']/df_IE002['Activo-SIS'].shift(12)-1)*100
-                    fig_df_IE002_bis = charts.graficar_linea_bis(df_IE002, 'Fecha', 'Dif_Activo', f'Variación anual <br>{lista_banca}', 'Fecha', "Variación Anual (%)", '#989A9C', '#0F0F0F', width=310, height=380)
+                metric_mapping = {
+                    'Activo Total': {'col': 'Activo-SIS', 'label': 'Activo Total (mdp)', 'var_label': 'Dif_Activo'},
+                    'Capital Contable': {'col': 'Capital-SIS', 'label': 'Capital Contable (mdp)', 'var_label': 'Dif_Capital'},
+                    'Resultado Neto': {'col': 'Resultado-SIS', 'label': 'Resultado Neto (mdp)', 'var_label': 'Dif_Resultado'},
+                }
 
-                elif lista_banca == 'Capital Contable':
-                    fig_df_IE002 = charts.graficar_linea_bis(df_IE002, 'Fecha', 'Capital-SIS', f'Evolución Histórica <br>{lista_banca}', 'Fecha', 'Capital Contable (mdp)', '#131212', '#989A9C', width=310, height=380)
-                    df_IE002['Dif_Capital'] = (df_IE002['Capital-SIS']/df_IE002['Capital-SIS'].shift(12)-1)*100
-                    fig_df_IE002_bis = charts.graficar_linea_bis(df_IE002, 'Fecha', 'Dif_Capital', f'Varación anual <br>{lista_banca}', 'Fecha', 'Variación Anual (%)', '#989A9C', '#0F0F0F', width=310, height=380)           
-                        
-                elif lista_banca == 'Resultado Neto':
-                    fig_df_IE002 = charts.graficar_linea_bis(df_IE002, 'Fecha', 'Resultado-SIS',  f'{"Evolución histórica:"}<br>{lista_banca}', 'Fecha', 'Resultado Neto (mdp)', '#131212', '#989A9C', width=310, height=380)
-                    df_IE002['Dif_Resultado'] = (df_IE002['Resultado-SIS']/df_IE002['Resultado-SIS'].shift(12)-1)*100
-                    fig_df_IE002_bis = charts.graficar_linea_bis(df_IE002, 'Fecha', 'Dif_Resultado', f'Variación anual <br>{lista_banca}', 'Fecha', "Variación Anual (%)", '#989A9C', '#0F0F0F', width=310, height=380)           
+                selected_metric = metric_mapping[lista_banca]
 
+                fig_df_IE002 = charts.graficar_linea_bis(
+                    df_IE002, 'Fecha', selected_metric['col'],  
+                    f'Evolución Histórica: <br>{lista_banca}', 
+                    'Fecha', selected_metric['label'], 
+                    '#131212', '#444445', width=310, height=380
+                )
+
+                # Cálculo de la variación anual
+                df_IE002[selected_metric['var_label']] = (df_IE002[selected_metric['col']] / df_IE002[selected_metric['col']].shift(12) - 1) * 100
+    
+                # Generación de la gráfica de variación anual
+                fig_df_IE002_bis = charts.create_chart(
+                    df_IE002, 'Fecha', selected_metric['var_label'], 
+                    f'Variación anual <br>{lista_banca}', 
+                    'Fecha', "Variación Anual (%)", 
+                    '#0f52EA', '#444445', 18, 310, 380, 1.5
+                )
+            
                 submitted = st.form_submit_button("Consultar")
                 
                 if submitted:
-
-                    col1, col2 = st.columns([1,1], gap='medium')
+                    col1, col2 = st.columns(2, gap='medium')
                     with col1:
                         st.plotly_chart(fig_df_IE002)
 
@@ -343,168 +353,119 @@ def main():
                             """)
 
         with tabs001[1]:
-            
+
             with st.form("form_captacion"):
-                lista_captacion = st.selectbox('Tipo de información', ('Captación Total','Depósitos de exigencia inmediata',  'Depósitos a plazo', 'Cuenta global de captación sin movimientos'))
+
+                lista_captacion = st.selectbox('Tipo de información', (
+                    'Captación Total',
+                    'Depósitos de exigencia inmediata',  
+                    'Depósitos a plazo', 
+                    'Cuenta global de captación sin movimientos'
+                ))
 
                 submit_2 = st.form_submit_button("Consultar")
+                
                 if submit_2:
-                    
-                    if lista_captacion == 'Captación Total':
-                        df_IE002['Dif_Capt'] = (df_IE002['Captacion-SIS']/df_IE002['Captacion-SIS'].shift(12)-1)*100
-                        col1, col2 = st.columns([1,1], gap='medium')
-                            
-                        with col1:
-                            st.plotly_chart(charts.graficar_linea_bis(df_IE002, 'Fecha', 'Captacion-SIS',  f'Evolución Histórica: <br>{lista_captacion}', 'Fecha', "Saldo (mdp)", '#131212', '#989A9C', width=310, height=380))
+                
+                    captacion_map = {
+                        'Captación Total': ('Captacion-SIS', 'Dif_Capt'),
+                        'Depósitos de exigencia inmediata': ('DepExigInm-SIS', 'Dif_Depositos'),
+                        'Depósitos a plazo': ('DepPlazo-SIS', 'Dif_Plazo'),
+                        'Cuenta global de captación sin movimientos': ('CtaGlobal-SIS', 'Dif_CGC')
+                    }
+                
+                    col_data, dif_col = captacion_map[lista_captacion]
+                    df_IE002[dif_col] = (df_IE002[col_data] / df_IE002[col_data].shift(12) - 1) * 100
+                    col1, col2 = st.columns([1, 1], gap='medium')
 
-                        with col2:
-                            st.plotly_chart(charts.graficar_linea_bis(df_IE002, 'Fecha', 'Dif_Capt',  f'Variación anual: <br>{lista_captacion}', 'Fecha', "Variación Anual (%)", '#989A9C', '#0F0F0F', width=310, height=380))
-                           
-                    elif lista_captacion == 'Depósitos de exigencia inmediata':
-                        df_IE002['Dif_Depositos'] = (df_IE002['DepExigInm-SIS']/df_IE002['DepExigInm-SIS'].shift(12)-1)*100
-                        col1, col2 = st.columns([1,1], gap='medium')
-                            
-                        with col1:
-                            st.plotly_chart(charts.graficar_linea_bis(df_IE002, 'Fecha', 'DepExigInm-SIS',  f'Evolución Histórica: <br>{lista_captacion}', 'Fecha',  "Saldo (mdp)", '#131212', '#989A9C', width=310, height=380))
-                            
-                        with col2:
-                            st.plotly_chart(charts.graficar_linea_bis(df_IE002, 'Fecha', 'Dif_Depositos',  f'Variación anual: <br>{lista_captacion}', 'Fecha', "Variación Anual (%)", '#989A9C', '#0F0F0F', width=310, height=380))                        
-                    
-                    elif lista_captacion == 'Depósitos a plazo':
-                        df_IE002['Dif_Plazo'] = (df_IE002['DepPlazo-SIS']/df_IE002['DepPlazo-SIS'].shift(12)-1)*100
-                        col1, col2 = st.columns([1,1], gap='medium')
-                            
-                        with col1:
-                            st.plotly_chart(charts.graficar_linea_bis(df_IE002, 'Fecha', 'DepPlazo-SIS',  f'Evolución Histórica: <br>{lista_captacion}', 'Fecha', "Saldo (mdp)", '#131212', '#989A9C', width=310, height=380))
-                            
-                        with col2:
-                            st.plotly_chart(charts.graficar_linea_bis(df_IE002, 'Fecha', 'Dif_Plazo',  f'Variación anual: <br>{lista_captacion}', 'Fecha', "Variación Anual (%)", '#989A9C', '#0F0F0F', width=310, height=380))
+                    with col1:
+                        st.plotly_chart(charts.graficar_linea_bis(
+                            df_IE002, 'Fecha', col_data,
+                            f'Evolución Histórica: <br>{lista_captacion}',
+                            'Fecha', "Saldo (mdp)",
+                            '#131212', '#444445', width=310, height=380)
+                        )
 
-                    elif lista_captacion == 'Cuenta global de captación sin movimientos':
-                        df_IE002['Dif_CGC'] = (df_IE002['CtaGlobal-SIS']/df_IE002['CtaGlobal-SIS'].shift(12)-1)*100
-                        col1, col2 = st.columns([1,1], gap='medium')
-                            
-                        with col1:
-                            st.plotly_chart(charts.graficar_linea_bis(df_IE002, 'Fecha', 'CtaGlobal-SIS', f'Evolución Histórica: <br>{lista_captacion}', 'Fecha', "Saldo (mdp)", '#131212', '#989A9C', width=310, height=380))
-                            
-                        with col2:
-                            st.plotly_chart(charts.graficar_linea_bis(df_IE002, 'Fecha', 'Dif_CGC',  f'Variación anual: <br>{lista_captacion}', 'Fecha', "Variación Anual (%)", '#989A9C', '#0F0F0F', width=310, height=380))
+                    with col2:
+                        st.plotly_chart(charts.create_chart(
+                            df_IE002, 'Fecha', dif_col,
+                            f'Variación anual <br>{lista_captacion}',
+                            'Fecha', "Variación Anual (%)",
+                            '#0f52EA', '#444445', 18, 310, 380, 1.5)
+                        )
 
-                    st.markdown("""
-                            Fuente: Comisión Nacional Bancaria y de Valores.                            
-                            """)
+                st.markdown("Fuente: Comisión Nacional Bancaria y de Valores.")
 
         with tabs001[2]:
                         
             with st.form("form_cartera"):
-
-                lista_cartera = st.selectbox('Tipo de información', ('Cartera de Crédito Total','Cartera Créditos de Consumo',  'Cartera Créditos Empresariales', 'Cartera de Tarjeta de Crédito', 'Cartera Créditos de Nómina', 'Cartera Créditos Personales',  'Cartera Créditos de Vivienda','Cartera Crédito Automotríz')) 
+                lista_cartera = st.selectbox('Tipo de información', (
+                    'Cartera de Crédito Total',
+                    'Cartera Créditos de Consumo',  
+                    'Cartera Créditos Empresariales', 
+                    'Cartera de Tarjeta de Crédito', 
+                    'Cartera Créditos de Nómina', 
+                    'Cartera Créditos Personales',  
+                    'Cartera Créditos de Vivienda',
+                    'Cartera Crédito Automotríz'
+                )) 
                 
-                #Calcular variaciones anuales
-                df_IE002['Dif_C_total'] = (df_IE002['CCT_Saldo-SIS']/df_IE002['CCT_Saldo-SIS'].shift(12)-1)*100
-                df_IE002['Dif_Consumo'] = (df_IE002['CCCT_Saldo-SIS']/df_IE002['CCCT_Saldo-SIS'].shift(12)-1)*100
-                df_IE002['Dif_Empresas'] = (df_IE002['CCE_Saldo-SIS']/df_IE002['CCE_Saldo-SIS'].shift(12)-1)*100
-                df_IE002['Dif_TC'] = (df_IE002['CCCTC_Saldo-SIS']/df_IE002['CCCTC_Saldo-SIS'].shift(12)-1)*100
-                df_IE002['Dif_Nomina'] = (df_IE002['CCCN_Saldo-SIS']/df_IE002['CCCN_Saldo-SIS'].shift(12)-1)*100
-                df_IE002['Dif_Personales'] = (df_IE002['CCCP_Saldo-SIS']/df_IE002['CCCP_Saldo-SIS'].shift(12)-1)*100
-                df_IE002['Dif_Vivienda'] = (df_IE002['CCV_Saldo-SIS']/df_IE002['CCV_Saldo-SIS'].shift(12)-1)*100
-                df_IE002['Dif_Automotriz'] = (df_IE002['CCCA_Saldo-SIS']/df_IE002['CCCA_Saldo-SIS'].shift(12)-1)*100
-
                 submit = st.form_submit_button("Consultar")
                 if submit:
-                    
-                    if lista_cartera == 'Cartera de Crédito Total':
+                        columnas = {
+                            'CCT_Saldo-SIS': 'Dif_C_total',
+                            'CCCT_Saldo-SIS': 'Dif_Consumo',
+                            'CCE_Saldo-SIS': 'Dif_Empresas',
+                            'CCCTC_Saldo-SIS': 'Dif_TC',
+                            'CCCN_Saldo-SIS': 'Dif_Nomina',
+                            'CCCP_Saldo-SIS': 'Dif_Personales',
+                            'CCV_Saldo-SIS': 'Dif_Vivienda',
+                            'CCCA_Saldo-SIS': 'Dif_Automotriz'
+                        }
+
+                        for original, nueva in columnas.items():
+                            df_IE002[nueva] = (df_IE002[original] / df_IE002[original].shift(12) - 1) * 100    
+
+                        cartera_map = {
+                            'Cartera de Crédito Total': ('CCT_Saldo-SIS', 'CCT_IMOR-SIS','CCT_PE-SIS','Dif_C_total'),
+                            'Cartera Créditos de Consumo': ('CCCT_Saldo-SIS', 'CCCT_IMOR-SIS','CCCT_PE-SIS','Dif_Consumo'),
+                            'Cartera Créditos Empresariales': ('CCE_Saldo-SIS', 'CCE_IMOR-SIS','CCE_PE-SIS','Dif_Empresas'),
+                            'Cartera de Tarjeta de Crédito': ('CCCTC_Saldo-SIS', 'CCCTC_IMOR-SIS','CCCTC_PE-SIS','Dif_TC'),
+                            'Cartera Créditos de Nómina': ('CCCN_Saldo-SIS', 'CCCN_IMOR-SIS','CCCN_PE-SIS','Dif_Nomina'),
+                            'Cartera Créditos Personales': ('CCCP_Saldo-SIS', 'CCCP_IMOR-SIS','CCCP_PE-SIS','Dif_Personales'),
+                            'Cartera Créditos de Vivienda': ('CCV_Saldo-SIS', 'CCV_IMOR-SIS','CCV_PE-SIS','Dif_Vivienda'),
+                            'Cartera Crédito Automotríz': ('CCCA_Saldo-SIS', 'CCCA_IMOR-SIS','CCCA_PE-SIS','Dif_Automotriz')
+                        }
+
+                        saldo, imor, pe, dif = cartera_map[lista_cartera] 
                         col1, col2 = st.columns([1,1], gap='medium')
                             
                         with col1:
-                            st.plotly_chart(charts.graficar_linea_bis(df_IE002, 'Fecha', 'CCT_Saldo-SIS',  f'Evolución Histórica: <br>{lista_cartera}', 'Fecha', 'Saldo (mdp)', '#131212', '#989A9C', width=310, height=380))
-                            st.plotly_chart(charts.graficar_linea_bis(df_IE002, 'Fecha', 'CCT_IMOR-SIS', f'IMOR: {lista_cartera}', 'Fecha', "Índice de Morosidad (%)", '#989A9C', '#0F0F0F', width=310, height=380))
+                            st.plotly_chart(charts.graficar_linea_bis(
+                                  df_IE002, 'Fecha', saldo,  
+                                  f'Evolución Histórica: <br>{lista_cartera}', 'Fecha', 
+                                  'Saldo (mdp)', '#131212', '#444445', width=310, height=380))
+                            
+                            st.plotly_chart(charts.create_chart(
+                                  df_IE002, 'Fecha', imor, 
+                                  f'IMOR: {lista_cartera}', 
+                                  'Fecha', "Índice de Morosidad (%)", 
+                                  '#0f52EA', '#444445', 18, 310, 380, 2.5))
 
                         with col2:
-                            st.plotly_chart(charts.graficar_linea_bis(df_IE002, 'Fecha', 'Dif_C_total',  f'Variación anual: <br>{lista_cartera}', 'Fecha', "Variación Anual (%)", '#131212', '#989A9C', width=310, height=380))                        
-                            st.plotly_chart(charts.graficar_linea_bis(df_IE002, 'Fecha', 'CCT_PE-SIS', f'Pérdida esperada: <br>{lista_cartera}', 'Fecha', "PE (%)", '#989A9C', '#0F0F0F',  width=310, height=380))
+                            st.plotly_chart(charts.create_chart(
+                                    df_IE002, 'Fecha', dif,
+                                    f'Variación anual <br>{lista_cartera}',
+                                    'Fecha', "Variación Anual (%)",
+                                    '#0f52EA', '#444445', 18, 310, 380, 2.5)
+                                )
 
-                    elif lista_cartera == 'Cartera Créditos de Consumo':
-                        col1, col2 = st.columns([1,1], gap='medium')
-                            
-                        with col1:
-                            st.plotly_chart(charts.graficar_linea_bis(df_IE002, 'Fecha', 'CCCT_Saldo-SIS',  f'Evolución Histórica: <br>{lista_cartera}', 'Fecha', "Saldo (mdp)", '#131212', '#989A9C', width=310, height=380))
-                            st.plotly_chart(charts.graficar_linea_bis(df_IE002, 'Fecha', 'CCCT_IMOR-SIS', f'IMOR: {lista_cartera}', 'Fecha', "Índice de Morosidad (%)", '#989A9C', '#0F0F0F', width=310, height=380))
-                            
-                        with col2:
-                            st.plotly_chart(charts.graficar_linea_bis(df_IE002, 'Fecha', 'Dif_Consumo',  f'Variación anual: <br>{lista_cartera}', 'Fecha', "Variación Anual (%)", '#131212', '#989A9C', width=310, height=380))                        
-                            st.plotly_chart(charts.graficar_linea_bis(df_IE002, 'Fecha', 'CCCT_PE-SIS', f'Pérdida esperada: <br>{lista_cartera}', 'Fecha', "PE (%)", '#989A9C', '#0F0F0F', width=310, height=380))
+                            st.plotly_chart(charts.graficar_linea_bis(df_IE002, 'Fecha', 
+                                    pe, f'Pérdida esperada: <br>{lista_cartera}', 'Fecha', 
+                                    "PE (%)", '#131212', '#444445', width=310, height=380))
 
-                    elif lista_cartera == 'Cartera Créditos Empresariales':
-                        col1, col2 = st.columns([1,1], gap='medium')
-                            
-                        with col1:
-                            st.plotly_chart(charts.graficar_linea_bis(df_IE002, 'Fecha', 'CCE_Saldo-SIS',  f'Evolución Histórica <br>{lista_cartera}', 'Fecha', "Saldo (mdp)", '#131212', '#989A9C', width=310, height=380))
-                            st.plotly_chart(charts.graficar_linea_bis(df_IE002, 'Fecha', 'CCE_IMOR-SIS', f'IMOR: {lista_cartera}', 'Fecha', "Índice de Morosidad (%)", '#989A9C', '#0F0F0F', width=310, height=380))
 
-                        with col2:
-                            st.plotly_chart(charts.graficar_linea_bis(df_IE002, 'Fecha', 'Dif_Empresas',  f'Variación anual: <br>{lista_cartera}', 'Fecha', "Variación Anual (%)", '#131212', '#989A9C', width=310, height=380))             
-                            st.plotly_chart(charts.graficar_linea_bis(df_IE002, 'Fecha', 'CCE_PE-SIS', f'Pérdidad Esperada: <br>{lista_cartera}', 'Fecha', "PE (%)", '#989A9C', '#0F0F0F', width=310, height=380))
-
-                    elif lista_cartera == 'Cartera de Tarjeta de Crédito':
-
-                        col1, col2 = st.columns([1,1], gap='medium')
-                            
-                        with col1:
-                            st.plotly_chart(charts.graficar_linea_bis(df_IE002, 'Fecha', 'CCCTC_Saldo-SIS',  f'Evolución Histórica: <br>{lista_cartera}', 'Fecha',  "Saldo (mdp)", '#131212', '#989A9C', width=310, height=380))
-                            st.plotly_chart(charts.graficar_linea_bis(df_IE002, 'Fecha', 'CCCTC_IMOR-SIS', f'IMOR: {lista_cartera}', 'Fecha', "Índice de Morosidad (%)", '#989A9C', '#0F0F0F', width=310, height=380))
-
-                        with col2:
-                            st.plotly_chart(charts.graficar_linea_bis(df_IE002, 'Fecha', 'Dif_TC',  f'Variación anual: <br>{lista_cartera}', 'Fecha', "Variación Anual (%)", '#131212', '#989A9C', width=310, height=380))
-                            st.plotly_chart(charts.graficar_linea_bis(df_IE002, 'Fecha', 'CCCTC_PE-SIS', f'Pérdida esperada: <br>{lista_cartera}', 'Fecha', "PE (%)", '#989A9C', '#0F0F0F', width=310, height=380))
-
-                    elif lista_cartera == 'Cartera Créditos de Nómina':
-
-                        col1, col2 = st.columns([1,1], gap='medium')
-                            
-                        with col1:
-                            st.plotly_chart(charts.graficar_linea_bis(df_IE002, 'Fecha', 'CCCN_Saldo-SIS',  f'Evolución Histórica: <br>{lista_cartera}', 'Fecha', "Saldo (mdp)", '#131212', '#989A9C', width=310, height=380))
-                            st.plotly_chart(charts.graficar_linea_bis(df_IE002, 'Fecha', 'CCCN_IMOR-SIS', f'IMOR: {lista_cartera}', 'Fecha', "Índice de Morosidad (%)", '#989A9C', '#0F0F0F', width=310, height=380))
-
-                        with col2:
-                            st.plotly_chart(charts.graficar_linea_bis(df_IE002, 'Fecha', 'Dif_Nomina',  f'Varición anual: <br>{lista_cartera}', 'Fecha', "Variación Anual (%)", '#131212', '#989A9C', width=310, height=380))
-                            st.plotly_chart(charts.graficar_linea_bis(df_IE002, 'Fecha', 'CCCN_PE-SIS', f'Pérdida esperada: <br>{lista_cartera}', 'Fecha', "PE (%)", '#989A9C', '#0F0F0F', width=310, height=380))
-
-                    elif lista_cartera == 'Cartera Créditos Personales':
-
-                        col1, col2 = st.columns([1,1], gap='medium')
-                            
-                        with col1:
-                            st.plotly_chart(charts.graficar_linea_bis(df_IE002, 'Fecha', 'CCCP_Saldo-SIS',  f'Evolución Histórica: <br>{lista_cartera}', 'Fecha', "Saldo (mdp)", '#131212', '#989A9C', width=310, height=380))
-                            st.plotly_chart(charts.graficar_linea_bis(df_IE002, 'Fecha', 'CCCP_IMOR-SIS', f'IMOR: {lista_cartera}', 'Fecha', "Índice de Morosidad (%)", '#989A9C', '#0F0F0F', width=310, height=380))
-                        
-                        with col2:
-                            st.plotly_chart(charts.graficar_linea_bis(df_IE002, 'Fecha', 'Dif_Personales',  f'Variación anual: <br>{lista_cartera}', 'Fecha', "Variación Anual (%)", '#131212', '#989A9C', width=310, height=380))
-                            st.plotly_chart(charts.graficar_linea_bis(df_IE002, 'Fecha', 'CCCP_PE-SIS', f'Pérdida esperada: <br>{lista_cartera}', 'Fecha', "PE (%)", '#989A9C', '#0F0F0F', width=310, height=380))
-
-                    elif lista_cartera == 'Cartera Créditos de Vivienda':
-
-                        col1, col2 = st.columns([1,1], gap='medium')
-                            
-                        with col1:
-                            st.plotly_chart(charts.graficar_linea_bis(df_IE002, 'Fecha', 'CCV_Saldo-SIS',  f'Evolución Histórica: <br>{lista_cartera}', 'Fecha', "Saldo (mdp)", '#131212', '#989A9C', width=310, height=380))
-                            st.plotly_chart(charts.graficar_linea_bis(df_IE002, 'Fecha', 'CCV_IMOR-SIS', f'IMOR: {lista_cartera}', "Índice de Morosidad (%)", '#989A9C', '#0F0F0F', width=310, height=380))
-                        
-                        with col2:
-                            st.plotly_chart(charts.graficar_linea_bis(df_IE002, 'Fecha', 'Dif_Vivienda',  f'Variación anual: <br>{lista_cartera}', 'Fecha', "Variación Anual (%)", '#131212', '#989A9C', width=310, height=380)) 
-                            st.plotly_chart(charts.graficar_linea_bis(df_IE002, 'Fecha', 'CCV_PE-SIS', f'Pérdida esperada: <br>{lista_cartera}', 'Fecha', "PE (%)", '#989A9C', '#0F0F0F', width=310, height=380))
-                            
-                    elif lista_cartera == 'Cartera Crédito Automotríz':
-                        col1, col2 = st.columns([1,1], gap='medium')
-                            
-                        with col1:
-                            st.plotly_chart(charts.graficar_linea_bis(df_IE002, 'Fecha', 'CCCA_Saldo-SIS',  f'Evolución Histórica: <br>{lista_cartera}', 'Fecha', "Saldo (mdp)", '#131212', '#989A9C', width=310, height=380))
-                            st.plotly_chart(charts.graficar_linea_bis(df_IE002, 'Fecha', 'CCCA_IMOR-SIS', f'IMOR: {lista_cartera}', 'Fecha', "Índice de Morosidad (%)", '#989A9C', '#0F0F0F', width=310, height=380))
-                        with col2:
-                            st.plotly_chart(charts.graficar_linea_bis(df_IE002, 'Fecha', 'Dif_Automotriz',  f'Variación anual: <br>{lista_cartera}', 'Fecha', "Variación Anual (%)", '#131212', '#989A9C', width=310, height=380)) 
-                            st.plotly_chart(charts.graficar_linea_bis(df_IE002, 'Fecha', 'CCCA_PE-SIS', f'Pérdida esperada: <br>{lista_cartera}', 'Fecha',  "PE (%)", '#989A9C', '#0F0F0F', width=310, height=380))
-
-                    st.markdown("""
+                st.markdown("""
                             Fuente: Comisión Nacional Bancaria y de Valores.                            
                             """)
 
@@ -525,10 +486,18 @@ def main():
                 df_nacional = df_IE005[df_IE005['Global']=="Nacional"]
                 st.write("Información del Índice de Precios a la vivienda SHF")
                 
-                fig_df_ie005 = charts.graficar_linea_bis(df_IE005_bis, 'Trimestre', 'Indice',  f'Evolución del Índice SHF <br>{value}', 'Periodo', 'Valor índice', '#131212', '#989A9C', width=310, height=380)
-        
-                fig_df_ie005_bis = charts.graficar_linea_bis(df_IE005_bis, 'Trimestre', 'Diferencia',  f'Variación Anual: Índice SHF <br>{value}','Periodo', "Variación Anual (%)", '#989A9C', '#0F0F0F', width=310, height=380)
-                
+                fig_df_ie005_val = charts.graficar_linea_bis(
+                    df_IE005_bis, 'Trimestre', 'Indice',  
+                    f'Evolución del Índice SHF <br>{value}', 
+                    'Periodo', 'Valor índice', '#131212', '#444445',
+                    width=310, height=380)
+
+                fig_df_ie005_var = charts.create_chart(
+                    df_IE005_bis, 'Trimestre', 'Diferencia',  
+                    f'Variación Anual: Índice SHF <br>{value}',
+                    'Periodo', "Variación Anual (%)", 
+                    '#0f52EA', '#444445', 18, 310, 380, 1.5)
+
                 submitted = st.form_submit_button("Consultar")
                 
                 if submitted:
@@ -536,11 +505,11 @@ def main():
                     col1, col2 = st.columns([1,1], gap='medium')
 
                     with col1:
-                        st.plotly_chart(fig_df_ie005_bis)
+                        st.plotly_chart(fig_df_ie005_val)
 
                 # Mostrar la gráfica en la segunda columna
                     with col2:
-                        st.plotly_chart(fig_df_ie005)
+                        st.plotly_chart(fig_df_ie005_var)
 
                     st.text("Fuete: SHF, Índice SHF de Precios a la Vivienda en México")
 
@@ -549,13 +518,17 @@ def main():
 
             df_IEO03 = functions.cargar_datos_gsheets_economics('IE_003',[0, 4, 5, 6] )
 
-            def graficar_lineas(df, x_col, y_cols, titles):
+            def graficar_lineas(df, x_col, y_cols, titles, main_title, line_width = 2):
                 fig = go.Figure()
     
                 for y_col, title in zip(y_cols, titles):
-                    fig.add_trace(go.Scatter(x=df[x_col], y=df[y_col], mode='lines', name=title))
+                    fig.add_trace(go.Scatter(x=df[x_col], y=df[y_col], mode='lines', 
+                                name=title,  line=dict(width=line_width)))
                 
-                fig.update_layout(xaxis_title=x_col, yaxis_title="Tasa de interés (%)")
+                fig.update_layout(
+                    title = main_title,
+                    xaxis_title=x_col, 
+                    yaxis_title="Tasa de interés (%)")
                 
                 return fig
 
@@ -578,7 +551,7 @@ def main():
                 titles.append('Tasa de interés promedio')  # Cambia 'Variable3' por el título adecuado
 
             if y_cols:  # Verifica si se seleccionaron variables para mostrar
-                fig = graficar_lineas(df_IEO03, 'Fecha', y_cols, titles)
+                fig = graficar_lineas(df_IEO03, 'Fecha', y_cols, titles, 'Tasa de interes de créditos a los Hogares - Mx.', line_width = 2.8)
                 st.plotly_chart(fig)
                 st.markdown("""
                 Fuente: Banco de México con información proporcionada por los intermediarios e INFOSEL.                            
