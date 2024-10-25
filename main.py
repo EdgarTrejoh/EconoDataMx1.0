@@ -106,13 +106,13 @@ def main():
             st.metric(label="INEGI", value=f"{pib_ultimo:,.2f} %")
             st.text(f'Trimestre: {pib_fecha}')
     
-    with st.sidebar:
-        st.warning("Para tener acceso a las secciones primero debes registrarte con tu cuenta de Google y pagar tu suscripción por única ocasión")
-        add_auth(required=True)
-        st.success("Ya puedes ingresar a todas las secciones")
-        st.write(st.session_state.email)
+    #with st.sidebar:
+    #    st.warning("Para tener acceso a las secciones primero debes registrarte con tu cuenta de Google y pagar tu suscripción por única ocasión")
+    #    add_auth(required=True)
+    #    st.success("Ya puedes ingresar a todas las secciones")
+    #    st.write(st.session_state.email)
     
-        st.write(st.session_state.user_subscribed)
+    #    st.write(st.session_state.user_subscribed)
 
     if menu_options == "Indicadores":
         st.title(f"Sección actual: {menu_options}")
