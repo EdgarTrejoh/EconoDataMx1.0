@@ -106,13 +106,13 @@ def main():
             st.metric(label="INEGI", value=f"{pib_ultimo:,.2f} %")
             st.text(f'Trimestre: {pib_fecha}')
     
-    #with st.sidebar:
-    #    st.warning("Para tener acceso a las secciones primero debes registrarte con tu cuenta de Google y pagar tu suscripción por única ocasión")
-    #    add_auth(required=True)
-    #    st.success("Ya puedes ingresar a todas las secciones")
-    #    st.write(st.session_state.email)
-    #
-    #    st.write(st.session_state.user_subscribed)
+    with st.sidebar:
+        st.warning("Para tener acceso a las secciones primero debes registrarte con tu cuenta de Google y pagar tu suscripción por única ocasión")
+        add_auth(required=True)
+        st.success("Ya puedes ingresar a todas las secciones")
+        st.write(st.session_state.email)
+    
+        st.write(st.session_state.user_subscribed)
 
     if menu_options == "Indicadores":
         st.title(f"Sección actual: {menu_options}")
@@ -136,8 +136,8 @@ def main():
                 with st.form("form_indicador_inflacion"):
 
                     st.text("Selecciona el periodo de informaciòn que quieres consultar:")
-                    start_Date = st.date_input("Fecha de inicio", datetime.date(2008, 1, 21), datetime.date(2008, 1, 21),datetime.date(2024, 8, 8),"start")
-                    end_Date = st.date_input("Fecha de fin", datetime.date(2008, 1, 21), datetime.date(2008, 1, 21),datetime.date(2024, 8, 8), "end")
+                    start_Date = st.date_input("Fecha de inicio", datetime.date(2008, 1, 21), datetime.date(2008, 1, 21),datetime.date(2024, 9, 9),"start")
+                    end_Date = st.date_input("Fecha de fin", datetime.date(2008, 1, 21), datetime.date(2008, 1, 21),datetime.date(2024, 9, 9), "end")
 
                     start_Date = pd.to_datetime(start_Date)
                     end_Date = pd.to_datetime(end_Date)    
@@ -181,6 +181,7 @@ def main():
                                     fig_ie007.update_layout(
                                         height = 380,
                                         width=280,
+
                                         showlegend = False,
                                         title_font=dict(
                                             color="#131212",
