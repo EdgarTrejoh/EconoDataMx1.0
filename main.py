@@ -136,8 +136,8 @@ def main():
                 with st.form("form_indicador_inflacion"):
 
                     st.text("Selecciona el periodo de informaciòn que quieres consultar:")
-                    start_Date = st.date_input("Fecha de inicio", datetime.date(2008, 1, 21), datetime.date(2008, 1, 21),datetime.date(2024, 9, 9),"start")
-                    end_Date = st.date_input("Fecha de fin", datetime.date(2008, 1, 21), datetime.date(2008, 1, 21),datetime.date(2024, 9, 9), "end")
+                    start_Date = st.date_input("Fecha de inicio", datetime.date(2008, 1, 21), datetime.date(2008, 1, 21),datetime.date(2024, 11, 9),"start")
+                    end_Date = st.date_input("Fecha de fin", datetime.date(2008, 1, 21), datetime.date(2008, 1, 21),datetime.date(2024, 11, 9), "end")
 
                     start_Date = pd.to_datetime(start_Date)
                     end_Date = pd.to_datetime(end_Date)    
