@@ -26,6 +26,7 @@ st.markdown(hide_st_style, unsafe_allow_html=True)
 def main():
     IPC = "^MXX"
     TC = "USDMXN=X"
+    #TC = "MXN=X"
     col_1, col_2 = st.columns(2)
 
     with col_1:
@@ -71,8 +72,12 @@ def main():
         periodo = "1mo"
         
         #Obtener información del tipo de cambio 
-        tipo_cambio_ultimo, tipo_cambio_previo, tc_fecha, resumen_tipo_cambio = functions.obtener_tipo_cambio(TC, periodo)
+        tipo_cambio_ultimo, tipo_cambio_previo, tc_fecha, tc_resumen = functions.obtener_tipo_cambio(TC, periodo)
         
+        tipo_cambio_ultimo = float(tipo_cambio_ultimo)
+        tipo_cambio_previo = float(tipo_cambio_previo)
+        
+
         #Obtener información del INPC
         inflacion_ultimo, inflacion_previo, inflacion_fecha, inflacion_resumen = functions.obtener_inflacion()
         
@@ -88,7 +93,7 @@ def main():
         
         with indicador1:
             st.info(':blue[Tipo de Cambio]', icon= "📌")
-            st.metric("USD/MPX", f"${tipo_cambio_ultimo:,.2f}", delta =f"{(tipo_cambio_ultimo - tipo_cambio_previo)/tipo_cambio_previo:.2%}", delta_color='inverse')
+            st.metric("USD/MPX", f"${tipo_cambio_ultimo:,.2f}", delta=f"{(tipo_cambio_ultimo - tipo_cambio_previo) / tipo_cambio_previo:.2%}", delta_color='inverse')
             st.text(f"Corte: {tc_fecha}")
         
         with indicador2:
@@ -162,13 +167,14 @@ def main():
                     # Cargar datos de Yahoo Finance
                     with st.form("form_exchange"):
                         period = st.selectbox("Periodo de información", ("5Y", "1Y", "YTD", "7mo", "5mo", "1mo"))
-                        df_IE007 = functions.cargar_datos_yfinance('USDMXN=X', period)
-                        df_IE007['Variacion'] = (df_IE007['Close']/df_IE007['Close'].shift()-1)*100
+                        df_IE007 = functions.cargar_datos_yfinance("USDMXN=X", period)
                         submitted = st.form_submit_button("Consultar")
                 
                         if submitted:
-                            if df_IE007 is not None:
-                            # Dividir la página en dos columnas
+                            if df_IE007 is not None and not df_IE007.empty:
+                                df_IE007['Variacion'] = (df_IE007['Close']/df_IE007['Close'].shift()-1)*100
+                                
+                                # Dividir la página en dos columnas
                                 col1, col2 = st.columns([1, 1])
 
                                 with col1:
@@ -181,7 +187,6 @@ def main():
                                     fig_ie007.update_layout(
                                         height = 380,
                                         width=280,
-
                                         showlegend = False,
                                         title_font=dict(
                                             color="#131212",

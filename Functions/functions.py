@@ -31,7 +31,18 @@ def cargar_datos_gsheets_banca(worksheet_name: str):
 def cargar_datos_yfinance(symbol: str, period: str):
     try:
         df = yf.download(symbol, period=period)
+        
+        if df.empty:
+            raise ValueError(f"No se encontraron datos para el símbolo '{symbol}' en el periodo '{period}'")
+        
+        if isinstance(df.columns, pd.MultiIndex):
+            df.columns = df.columns.droplevel(0)  # Obtener los nombres de la segunda jerarquía
+
+        column_names = ["Open", "High", "Low", "Close", "Adj Close", "Volume"]
+        df.columns = column_names[:len(df.columns)] 
+
         return df
+    
     except Exception as e:
         st.error(f"Error al cargar los datos de Yahoo Finance para el símbolo '{symbol}': {str(e)}")
         return None
@@ -51,6 +62,14 @@ def filtrar_por_fechas(df: pd.DataFrame, fecha_minima, fecha_maxima):
 
 def obtener_tipo_cambio(symbol: str, periodo):
     df = cargar_datos_yfinance(symbol, periodo)
+
+    if df is None or df.empty:
+        return None, None, None, None
+    
+    if len(df) < 2:
+        st.warning(f"Datos insuficientes para calcular el tipo de cambio de '{symbol}' en el periodo '{periodo}'")
+        return df['Close'].iloc[-1], None, df.index[-1].strftime('%Y-%m-%d'), None
+    
     ultimo = df['Close'].iloc[-1]
     previo = df['Close'].iloc[-2]
     fecha = df.index[-1].strftime('%Y-%m-%d')
