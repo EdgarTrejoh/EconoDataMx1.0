@@ -1,13 +1,16 @@
+from datetime import datetime
+from typing import Optional, Sequence, Tuple
+
 import pandas as pd
-#import plotly.graph_objects as go
-#import plotly.express as px
 import streamlit as st
-import yfinance as yf 
+import yfinance as yf
 from streamlit_gsheets import GSheetsConnection
-from datetime import datetime, date
 
    
-def cargar_datos_gsheets_economics(worksheet_name: str, columns: list= None):
+def cargar_datos_gsheets_economics(
+    worksheet_name: str,
+    columns: Optional[Sequence[int]] = None,
+) -> Optional[pd.DataFrame]:
     conn = st.connection("gsheets", type=GSheetsConnection)
     try:
         df = conn.read(worksheet=worksheet_name, usecols=columns, ttl=2).dropna()
@@ -17,7 +20,7 @@ def cargar_datos_gsheets_economics(worksheet_name: str, columns: list= None):
         return None    
 
 @st.cache_resource(ttl=600)  # Almacena en caché los resultados durante 1 hora (3600 segundos)
-def cargar_datos_gsheets_banca(worksheet_name: str):
+def cargar_datos_gsheets_banca(worksheet_name: str) -> Optional[pd.DataFrame]:
     conn = st.connection("gsheets_2", type=GSheetsConnection)
     try:
         df = conn.read(worksheet=worksheet_name).dropna()
@@ -27,8 +30,8 @@ def cargar_datos_gsheets_banca(worksheet_name: str):
         #st.rerun()
         return None
     
-@st.cache_resource(ttl=600) 
-def cargar_datos_yfinance(symbol: str, period: str):
+@st.cache_resource(ttl=600)
+def cargar_datos_yfinance(symbol: str, period: str) -> Optional[pd.DataFrame]:
     try:
         df = yf.download(symbol, period=period)
         
@@ -47,20 +50,27 @@ def cargar_datos_yfinance(symbol: str, period: str):
         st.error(f"Error al cargar los datos de Yahoo Finance para el símbolo '{symbol}': {str(e)}")
         return None
 
-def filtrar_por_fecha(df: pd.DataFrame, fecha_minima: str):
+def filtrar_por_fecha(df: pd.DataFrame, fecha_minima: str) -> pd.DataFrame:
     df['Fecha'] = pd.to_datetime(df['Fecha'])
     df['Fecha'] = df["Fecha"].dt.strftime('%Y-%m-%d')
     df = df[df['Fecha'] >= fecha_minima]
     return df
 
-def filtrar_por_fechas(df: pd.DataFrame, fecha_minima, fecha_maxima):
+def filtrar_por_fechas(
+    df: pd.DataFrame,
+    fecha_minima,
+    fecha_maxima,
+) -> pd.DataFrame:
     df['Fecha'] = pd.to_datetime(df['Fecha'], format='%Y-%m-%d')
     fecha_minima = pd.to_datetime(fecha_minima, format='%Y-%m-%d' )
     fecha_maxima = pd.to_datetime(fecha_maxima, format='%Y-%m-%d' )
     df_filtrado = df[(df['Fecha'] >= fecha_minima) & (df['Fecha']<=fecha_maxima)]
     return df_filtrado
 
-def obtener_tipo_cambio(symbol: str, periodo):
+def obtener_tipo_cambio(
+    symbol: str,
+    periodo: str,
+) -> Tuple[Optional[float], Optional[float], Optional[str], Optional[pd.DataFrame]]:
     df = cargar_datos_yfinance(symbol, periodo)
 
     if df is None or df.empty:
@@ -76,19 +86,25 @@ def obtener_tipo_cambio(symbol: str, periodo):
     resumen = df.describe()
     return ultimo, previo, fecha, resumen
 
-def obtener_inflacion():
+def obtener_inflacion() -> Tuple[Optional[float], Optional[float], Optional[str], Optional[pd.DataFrame]]:
     df = cargar_datos_gsheets_economics('IE_004', [0,2])
+    if df is None or df.empty:
+        return None, None, None, None
     ultimo = df['Inflación Anual'].iloc[-1]
     fecha = df['Fecha'].iloc[-1]
     previo = df['Inflación Anual'].iloc[-2]
     resumen = df['Inflación Anual'].describe()
     return ultimo, previo, fecha, resumen
 
-def obtener_tasa_referencia():
+def obtener_tasa_referencia() -> Tuple[Optional[float], Optional[float], Optional[pd.Timestamp], Optional[pd.Series]]:
     df = cargar_datos_gsheets_economics('IE_001', [0, 1])
+    if df is None or df.empty:
+        return None, None, None, None
     df['Fecha'] = pd.to_datetime(df['Fecha'], format='%d/%m/%Y')
 
     calendario = cargar_datos_gsheets_economics('IE_001', [7])
+    if calendario is None or calendario.empty:
+        return None, None, None, None
     calendario['Date'] = pd.to_datetime(calendario['Date'], format='%d/%m/%Y')
 
     fecha_actual = datetime.now()
@@ -101,8 +117,10 @@ def obtener_tasa_referencia():
     resumen = df['TasaReferencia'].describe()
     return tasa_ultima, tasa_previa, fecha_ultima, resumen
 
-def obtener_pib():
+def obtener_pib() -> Tuple[Optional[float], Optional[str], Optional[pd.Series]]:
     df = cargar_datos_gsheets_economics('IE_006', [2,3,4])
+    if df is None or df.empty:
+        return None, None, None
     fecha_ultima = df['Periodo'].iloc[-1]
     pib_ultimo = df['PIB (%)'].iloc[-1]
     resumen = df['Producto interno bruto'].describe()

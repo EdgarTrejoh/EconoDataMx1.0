@@ -73,19 +73,26 @@ def main():
         
         #Obtener información del tipo de cambio 
         tipo_cambio_ultimo, tipo_cambio_previo, tc_fecha, tc_resumen = functions.obtener_tipo_cambio(TC, periodo)
-        
-        tipo_cambio_ultimo = float(tipo_cambio_ultimo)
-        tipo_cambio_previo = float(tipo_cambio_previo)
+        tipo_cambio_disponible = tipo_cambio_ultimo is not None and tipo_cambio_previo is not None
+
+        if tipo_cambio_disponible:
+            tipo_cambio_ultimo = float(tipo_cambio_ultimo)
+            tipo_cambio_previo = float(tipo_cambio_previo)
         
 
         #Obtener información del INPC
         inflacion_ultimo, inflacion_previo, inflacion_fecha, inflacion_resumen = functions.obtener_inflacion()
-        
+        inflacion_disponible = inflacion_ultimo is not None and inflacion_previo is not None
+
         #Obtener información de la tasa de referencia Banxico
         tasa_referencia_ultima, tasa_referencia_previa, tasa_referencia_fecha, resumen_tasa_referencia = functions.obtener_tasa_referencia()
+        tasa_referencia_disponible = (
+            tasa_referencia_ultima is not None and tasa_referencia_previa is not None
+        )
         
         #Obtener información del PIB
         pib_ultimo, pib_fecha, resumen_pib = functions.obtener_pib()
+        pib_disponible = pib_ultimo is not None
 
         st.subheader("Principales índices")
         
@@ -93,23 +100,35 @@ def main():
         
         with indicador1:
             st.info(':blue[Tipo de Cambio]', icon= "📌")
-            st.metric("USD/MPX", f"${tipo_cambio_ultimo:,.2f}", delta=f"{(tipo_cambio_ultimo - tipo_cambio_previo) / tipo_cambio_previo:.2%}", delta_color='inverse')
-            st.text(f"Corte: {tc_fecha}")
+            if tipo_cambio_disponible:
+                st.metric("USD/MPX", f"${tipo_cambio_ultimo:,.2f}", delta=f"{(tipo_cambio_ultimo - tipo_cambio_previo) / tipo_cambio_previo:.2%}", delta_color='inverse')
+                st.text(f"Corte: {tc_fecha}")
+            else:
+                st.warning("No hay datos disponibles para el tipo de cambio.")
         
         with indicador2:
             st.info(':blue[Tasa Referencia]', icon="📌")
-            st.metric("Banxico", f"{tasa_referencia_ultima:,.2f} %", delta = f"{(tasa_referencia_ultima - tasa_referencia_previa)/tasa_referencia_previa:.2%}")
-            st.text(f'Corte: {tasa_referencia_fecha}')
+            if tasa_referencia_disponible:
+                st.metric("Banxico", f"{tasa_referencia_ultima:,.2f} %", delta = f"{(tasa_referencia_ultima - tasa_referencia_previa)/tasa_referencia_previa:.2%}")
+                st.text(f'Corte: {tasa_referencia_fecha}')
+            else:
+                st.warning("No hay datos disponibles para la tasa de referencia.")
     
         with indicador3:
             st.info(':blue[Inflación Anual]',icon="📌")
-            st.metric("INEGI", f"{inflacion_ultimo:,.2f} %", delta = f"{(inflacion_ultimo - inflacion_previo)/inflacion_previo:.2%}", delta_color='inverse')
-            st.text(f"Corte: {inflacion_fecha}")
+            if inflacion_disponible:
+                st.metric("INEGI", f"{inflacion_ultimo:,.2f} %", delta = f"{(inflacion_ultimo - inflacion_previo)/inflacion_previo:.2%}", delta_color='inverse')
+                st.text(f"Corte: {inflacion_fecha}")
+            else:
+                st.warning("No hay datos disponibles para la inflación.")
     
         with indicador4:
             st.info(':blue[Variacion Anual PIB]',icon= "📌")
-            st.metric(label="INEGI", value=f"{pib_ultimo:,.2f} %")
-            st.text(f'Trimestre: {pib_fecha}')
+            if pib_disponible:
+                st.metric(label="INEGI", value=f"{pib_ultimo:,.2f} %")
+                st.text(f'Trimestre: {pib_fecha}')
+            else:
+                st.warning("No hay datos disponibles para el PIB.")
     
     #with st.sidebar:
     #    st.warning("Para tener acceso a las secciones primero debes registrarte con tu cuenta de Google y pagar tu suscripción por única ocasión")
@@ -253,12 +272,12 @@ def main():
                 with st.form("form_IPC"):
                     period = st.selectbox("Periodo de información", ("5Y", "1Y", "YTD", "7mo", "5mo", "1mo"))
                     df_IE003 = functions.cargar_datos_yfinance(IPC, period)
-                    df_IE003['Variacion'] = (df_IE003['Close']/df_IE003['Close'].shift()-1)*100
                     submitted = st.form_submit_button("Consultar")
             
                     if submitted:
                 
-                        if df_IE003 is not None:
+                        if df_IE003 is not None and not df_IE003.empty:
+                            df_IE003['Variacion'] = (df_IE003['Close']/df_IE003['Close'].shift()-1)*100
                         # Dividir la página en dos columnas
                             col1, col2 = st.columns([1, 1])
 
@@ -307,6 +326,8 @@ def main():
                                 st.plotly_chart(fig_ie003_bis)
 
                             st.markdown ("[Fuente: Yahoo Finance](https://finance.yahoo.com/)")
+                        else:
+                            st.warning("No hay datos disponibles para el IPC.")
 
     elif menu_options == "Banca":
         st.title(f"Sección actual: {menu_options}")
@@ -314,6 +335,9 @@ def main():
 
         with tabs001[0]:
             df_IE002 = functions.cargar_datos_gsheets_economics('IE_002')
+            if df_IE002 is None or df_IE002.empty:
+                st.warning("No hay datos disponibles para los indicadores financieros.")
+                st.stop()
             
             with st.form("form_banca"):
                 lista_banca = st.selectbox('Tipo de información', ("Activo Total", "Capital Contable", "Resultado Neto"))
@@ -485,9 +509,12 @@ def main():
          
             with st.form("form_SHF"):
                 df_IE005 = functions.cargar_datos_gsheets_economics('IE_005', [1, 6, 7])
+                if df_IE005 is None or df_IE005.empty:
+                    st.warning("No hay datos disponibles para el índice SHF.")
+                    st.stop()
                 lista = df_IE005['Global'].dropna().unique()
                 value= st.selectbox('Tipo de información', lista) 
-                df_IE005_bis = df_IE005[df_IE005['Global']==value]  
+                df_IE005_bis = df_IE005[df_IE005['Global']==value].copy()
                 df_IE005_bis['Diferencia'] = (df_IE005_bis['Indice']/df_IE005_bis['Indice'].shift(4)-1)*100
                 df_nacional = df_IE005[df_IE005['Global']=="Nacional"]
                 st.write("Información del Índice de Precios a la vivienda SHF")
@@ -523,6 +550,9 @@ def main():
             st.write('Tasa de interés créditos a la vivienda')
 
             df_IEO03 = functions.cargar_datos_gsheets_economics('IE_003',[0, 4, 5, 6] )
+            if df_IEO03 is None or df_IEO03.empty:
+                st.warning("No hay datos disponibles para tasas de interés de vivienda.")
+                st.stop()
 
             def graficar_lineas(df, x_col, y_cols, titles, main_title, line_width = 2):
                 fig = go.Figure()
